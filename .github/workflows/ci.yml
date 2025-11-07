@@ -107,21 +107,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Gitleaks (Open Source)
-        run: |
-          # Get the latest release tag from GitHub API
-          GITLEAKS_VERSION=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep tag_name | cut -d '"' -f 4)
-          echo "Installing Gitleaks version $GITLEAKS_VERSION"
-          
-          # Download and extract the correct tarball for Linux AMD64
-          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION#v}_linux_x64.tar.gz" -o gitleaks.tar.gz
-          tar -xzf gitleaks.tar.gz
-          sudo mv gitleaks /usr/local/bin/
-          gitleaks version
-
-      - name: Run Gitleaks Scan
-        run: |
-          gitleaks detect --source . --exit-code
+      - name: Run Gitleaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   # build and push docker image to Docker Hub
   build_and_push:
