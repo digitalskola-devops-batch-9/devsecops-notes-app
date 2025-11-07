@@ -117,7 +117,7 @@ jobs:
   build_and_push:
     name: Build & Push Image to Docker Hub
     runs-on: ubuntu-latest
-    needs: [unit_test_pytest, sca_audit, secret_scan_gitleaks]
+    needs: [unit_test_pytest, sast_bandit, sca_audit, secret_scan_gitleaks]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
