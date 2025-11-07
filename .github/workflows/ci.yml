@@ -32,15 +32,15 @@ jobs:
           pip install -r requirements.txt -r dev-requirements.txt
       - name: Package virtual environment
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
+          python -m venv venv
+          source venv/bin/activate
           pip install -r requirements.txt -r dev-requirements.txt
-          tar -czf .venv.tar.gz .venv
-      - name: Upload .venv artifact
+          tar -czf venv.tar.gz venv
+      - name: Upload venv artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .venv
-          path: .venv.tar.gz
+          name: venv
+          path: venv.tar.gz
   
   # run unit tests with pytest
   unit_test_pytest:
@@ -54,11 +54,11 @@ jobs:
           python-version: '3.11'
       - uses: actions/download-artifact@v4
         with:
-          name: .venv
-      - run: tar -xzf .venv.tar.gz
+          name: venv
+      - run: tar -xzf venv.tar.gz
       - name: Run unit tests
         run: |
-          source .venv/bin/activate
+          source venv/bin/activate
           pytest -q
 
   # run SAST using bandit
@@ -73,11 +73,11 @@ jobs:
           python-version: '3.11'
       - uses: actions/download-artifact@v4
         with:
-          name: .venv
-      - run: tar -xzf .venv.tar.gz
+          name: venv
+      - run: tar -xzf venv.tar.gz
       - name: Run Bandit
         run: |
-          source .venv/bin/activate
+          source venv/bin/activate
           pip install bandit
           bandit -r . -lll
 
@@ -90,11 +90,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
-          name: .venv
-      - run: tar -xzf .venv.tar.gz
+          name: venv
+      - run: tar -xzf venv.tar.gz
       - name: Run pip-audit
         run: |
-          source .venv/bin/activate
+          source venv/bin/activate
           pip install pip-audit
           pip-audit --format=plain
 
@@ -111,7 +111,7 @@ jobs:
           sudo dpkg -i gitleaks.deb
       - name: Run Gitleaks
         run: gitleaks detect --source . --exit-code
-        
+
   # build and push docker image to Docker Hub
   build_and_push:
     name: Build & Push Image to Docker Hub
