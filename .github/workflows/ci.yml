@@ -30,18 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r dev-requirements.txt
-      - name: Package virtual environment
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install -r requirements.txt -r dev-requirements.txt
-          tar -czf venv.tar.gz venv
-      - name: Upload venv artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: venv
-          path: venv.tar.gz
-  
+
   # run unit tests with pytest
   unit_test_pytest:
     name: Unit Test (pytest)
@@ -52,14 +41,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - uses: actions/download-artifact@v4
-        with:
-          name: venv
-      - run: tar -xzf venv.tar.gz
-      - name: Run unit tests
+      - name: Install dependencies
         run: |
-          source venv/bin/activate
-          pytest -q
+          pip install -r requirements.txt -r dev-requirements.txt
+      - name: Run unit tests
+        run: pytest -q
 
   # run SAST using bandit
   sast_bandit:
@@ -71,15 +57,11 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - uses: actions/download-artifact@v4
-        with:
-          name: venv
-      - run: tar -xzf venv.tar.gz
-      - name: Run Bandit
+      - name: Install Bandit
         run: |
-          source venv/bin/activate
           pip install bandit
-          bandit -r . -lll
+      - name: Run Bandit
+        run: bandit -r . -lll -x venv
 
   # runs SCA using pip-audit
   sca_audit:
@@ -90,13 +72,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
-          name: venv
-      - run: tar -xzf venv.tar.gz
-      - name: Run pip-audit
+          python-version: '3.11'
+      - name: Install pip-audit
         run: |
-          source venv/bin/activate
           pip install pip-audit
-          pip-audit --format=plain
+      - name: Run pip-audit
+        run: pip-audit --format=plain
 
   # secret scan using Gitleaks
   secret_scan_gitleaks:
@@ -129,7 +110,7 @@ jobs:
         run: |
           docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:${COMMIT_SHA} .
           docker push ${IMAGE_NAME}:${IMAGE_TAG}
-          docker push ${IMAGE_NAME}:${COMMIT_SHA} 
+          docker push ${IMAGE_NAME}:${COMMIT_SHA}
 
   # scan image using Trivy
   image_scan_trivy:
